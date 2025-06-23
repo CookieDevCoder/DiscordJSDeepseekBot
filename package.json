@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "axios": "^1.10.0",
+    "discord.js": "^14.20.0",
+    "dotenv": "^16.5.0"
+  },
+  "name": "dickbot",
+  "version": "1.0.0",
+  "description": "A bot that perfectly replicates Daniel",
+  "main": "Daniel.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Cookie",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.27.0"
+  }
+}

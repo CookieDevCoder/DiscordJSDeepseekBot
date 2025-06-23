@@ -1,6 +1,8 @@
+// Discord.js for all the discord bot stuff
 const { Client, Events, GatewayIntentBits, ActivityType} = require('discord.js');
+// dotenv file to avoid leaking Discord Bot's Token
 require('dotenv').config();
-// Ollama for chat
+// HTTP Client for communicating with Ollama using HTTP Requests
 const axios = require('axios');
 
 // Json File
@@ -34,10 +36,9 @@ client.once(Events.ClientReady, c => {
 });
 
 client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
-    if (!message.content.toLowerCase().startsWith(BotCommand)) {
-        return;
-    }
+    // prevents bots from activating the bot, also preventing accidental recursion
+    // Also checks if User used the bot command.
+    if (message.author.bot || !message.content.toLowerCase().startsWith(BotCommand)) return;
     MessageAuthor = message.author.displayName;
     // removes !ask from input
     const userInput = message.content.slice(5);
@@ -50,18 +51,22 @@ client.on('messageCreate', async (message) => {
     try {
         // Send Request to Locally Hosted Ollama Deepseek
         const response = await axios.post(
-        'http://localhost:11434/api/chat',
-        {
-            model: 'deepseek-r1:7b',
-            messages: [
-                { role: 'system', content: SystemInput},
-                { role: 'user', content: userInput }
-            ]
-        },
+            // Ollama is locally hosted on the 11434 port
+            'http://localhost:11434/api/chat',
+            {
+                // model should be the desired model to use
+                model: 'deepseek-r1:7b',
+                messages: [
+                    // role: system sets up rules and instructions the bot should follow
+                    { role: 'system', content: SystemInput},
+                    // role: user sends the message from the user to the chatbot to generate a response.
+                    { role: 'user', content: userInput }
+                ]
+            },
+            // headers: content type asks for the returned message to be in json format.
             { headers: { 'Content-Type': 'application/json' } }
         );
 
-        console.log("generated response, dumped into JsonFile");
         const formatted = JSON.stringify(response.data, null, 2);
         fs.writeFileSync('response.json', response.data, 'utf-8');
 
@@ -76,10 +81,10 @@ client.on('messageCreate', async (message) => {
                 const chunk = json.message?.content;
                 if (chunk) fullMessage += chunk;
             } catch (e) {
-              console.error('Failed to parse line:', line);
+                console.error('Failed to parse line:', line);
             }
         }
-        console.log("Message Sent\n" + fullMessage);
+        console.log("Message Sent:\n" + fullMessage);
         // removes thinking Phase of reply
         const botReply = fullMessage.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
         message.reply(botReply);
